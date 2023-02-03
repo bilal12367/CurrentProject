@@ -1,0 +1,30 @@
+
+.sc1{
+  height: '100%';
+  position: relative;
+  overflow-y: scroll;
+}
+
+.sc1::-webkit-scrollbar {
+    width: 20px;
+    right: 20px;
+    border-right: 10px solid transparent;
+  }
+  
+
+ .sc1::-webkit-scrollbar-track {
+    background: transparent; 
+    border-right: 10px solid transparent;
+  }
+   
+
+.sc1::-webkit-scrollbar-thumb {
+    background: rgba(238, 238, 238, 0.9); 
+    border-radius: 20px;
+    border-right: 10px solid transparent;
+  }
+  
+
+.sc1::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+  }
