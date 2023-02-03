@@ -19,7 +19,7 @@ const upload = multer({})
 dotenv.config();
 
 // const client = redis.createClient({ legacyMode: true, url: 'redis://192.168.0.4:6379' })
-const client = redis.createClient({ legacyMode: true, url: 'redis://192.168.0.6:6379' })
+const client = redis.createClient({ legacyMode: true, url: 'redis://'+process.env.SERVER_URL+':6379' })
 
 await client.connect();
 
