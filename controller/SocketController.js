@@ -1,11 +1,9 @@
 import { io } from "socket.io-client";
-import { logger } from "../logger/winston-logger.js";
 import User from "../models/User.js";
 import UserStatus from "../models/UserStatus.js";
-import logBox from "log-box";
+import { logger } from "../logger/logger.js";
 // Use Redis https://www.youtube.com/watch?v=k0_DK4bzHiU
-const SocketController = async (io, client) => {
-    const log = logger();
+const SocketController = async (io) => {
     io.on("connection", (socket) => {
         var userId, socketId;
         socket.on("user", async (data) => {
@@ -13,40 +11,41 @@ const SocketController = async (io, client) => {
             socketId = socket.id
             console.info("---------------------------------------------")
             const userStatus = await UserStatus.findOne({ user_id: data._id })
-            console.info('userId', userId)
             const user1 = await User.findOne({ _id: data._id })
-            console.info(user1.name, ' Connected')
+            // console.info(user1.name, ' Connected')
+            logger.info(user1.name + ' Connected');
             if (userStatus) {
-                console.info(user1.name + ' Updating Status online.')
+                logger.info(user1.name + ' Updating Status online.')
                 userStatus.online = true;
                 userStatus.name = user1.name;
                 userStatus.socket_id = socket.id
                 userStatus.viewing_chat_id = undefined;
-                userStatus.save();
+                await userStatus.save();
                 console.info("---------------------------------------------")
             } else {
+                logger.info('Creating userstatus for: ', user1.name)
                 await UserStatus.create({ user_id: userId, socket_id: socket.id, user_name: user1.name, online: true, viewing_chat_id: undefined })
             }
-            client.set(userId, socket.id)
-            client.keys("*", (err, data) => {
-                if (data != null) console.info("Redis List: ", data)
-            })
+            // client.set(userId, socket.id)
+            // client.keys("*", (err, data) => {
+            //     if (data != null) console.info("Redis List: ", data)
+            // })
         })
         socket.on("closing", (data) => {
             console.info("Closing: ", data)
         })
 
         socket.on("clear", async (data) => {
-            client.keys("*", (err, data) => {
-                if (data != null) {
-                    data.forEach(item => {
-                        client.del(item)
-                    });
-                }
-            })
-            client.keys("*", (err, data) => {
-                if (data != null) console.info(data)
-            })
+            // client.keys("*", (err, data) => {
+            //     if (data != null) {
+            //         data.forEach(item => {
+            //             client.del(item)
+            //         });
+            //     }
+            // })
+            // client.keys("*", (err, data) => {
+            //     if (data != null) console.info(data)
+            // })
         })
 
         socket.on("send_message", (data) => {
@@ -56,7 +55,6 @@ const SocketController = async (io, client) => {
 
         socket.on("teamAdded", async (data) => {
             const users = await UserStatus.find({ user_id: { $in: data.participants } }).select({ socket_id: 1, user_id: 1 });
-            log.debug(users)
             users.map((item)=>{
                 if(item.socket_id !== undefined){
                     io.to(item.socket_id).emit('chatUpdate',data);
@@ -79,7 +77,6 @@ const SocketController = async (io, client) => {
 
         socket.on("duoAdded",async (data) => {
             const users = await UserStatus.find({ user_id: { $in: data.participants } }).select({ socket_id: 1, user_id: 1 });
-            log.debug(users)
             users.map((item)=>{
                 if(item.socket_id !== undefined){
                     io.to(item.socket_id).emit('chatUpdate',data);
@@ -113,15 +110,15 @@ const SocketController = async (io, client) => {
         })
 
         socket.on("leave_room", async (data) => {
-            console.info("Leave room called")
             socket.leave(data.roomId)
             const userStatus = await UserStatus.findOne({ user_id: data.user });
             if (userStatus) {
                 userStatus.viewing_chat_id = undefined;
                 await userStatus.save();
-            } else {
-                await UserStatus.create({ user_id: data.user, online: true, viewing_chat_id: undefined })
-            }
+            } 
+            // else {
+            //     await UserStatus.create({ user_id: data.user, online: true, viewing_chat_id: undefined })
+            // }
         })
 
         socket.on("disconnect1", async (data) => {
@@ -156,14 +153,14 @@ const SocketController = async (io, client) => {
             // } else {
             //     await UserStatus.create({ user_id: userId, online: false, viewing_chat_id: undefined, socket_id: undefined })
             // }
-            client.exists(userId, (err, data) => {
-                if (data == 1) {
-                    client.del(userId)
-                    client.keys("*", (err, data) => {
-                        if (data != null) console.info("Redis List: " + data)
-                    })
-                }
-            })
+            // client.exists(userId, (err, data) => {
+            //     if (data == 1) {
+            //         client.del(userId)
+            //         client.keys("*", (err, data) => {
+            //             if (data != null) console.info("Redis List: " + data)
+            //         })
+            //     }
+            // })
         })
     })
 

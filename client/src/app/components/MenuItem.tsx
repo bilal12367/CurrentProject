@@ -23,7 +23,7 @@ const MenuItem = ({ icon, showText, title, handleAlignment, alignment }: propTyp
     }
     useEffect(() => {
         if (alignment == title) {
-            console.log("Navigating to dashboard+title from menu item")
+            // console.log("Navigating to dashboard+title from menu item")
             navigate('/dashboard/' + title)
         }
 

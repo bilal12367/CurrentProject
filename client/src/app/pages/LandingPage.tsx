@@ -104,7 +104,7 @@ export const LandingPage = () => {
                 variant="contained"
                 sx={{ marginTop: '40px' }}
                 onClick={() => {
-                  console.log("Navigating to login page from landing page")
+                  // console.log("Navigating to login page from landing page")
                   navigate('/auth/login')
                 }}
                 size="large"

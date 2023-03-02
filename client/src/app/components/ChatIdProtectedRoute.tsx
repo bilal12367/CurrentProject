@@ -24,7 +24,7 @@ const ChatIdProtectedRoute = ({ children }: PropType) => {
           return item;
         }
       })[0]
-      if (chatItem == undefined) {
+      if (chatItem == undefined && userChatList.length != 0) {
         setStatus('failed')
       } else {
         dispatch(actions.slice1.setSelectedChat(chatItem))
@@ -44,10 +44,12 @@ const ChatIdProtectedRoute = ({ children }: PropType) => {
       <Typography marginTop={5} variant='h4' color={theme.palette.grey[700]} fontWeight='bold'>Loading</Typography>
       <Typography variant='caption' color={theme.palette.grey[500]}>Please wait ...</Typography>
     </Grid>)
-  } else {
+  } else if (status == 'failed') {
     return (<Grid container direction='column' height='100%' bgcolor='aliceblue' justifyContent='center' alignItems='center'>
       <Typography variant='h4'>Chat Not Found.</Typography>
     </Grid>)
+  } else {
+    return <></>
   }
 }
 

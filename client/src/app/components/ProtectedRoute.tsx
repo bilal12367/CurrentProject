@@ -22,7 +22,7 @@ const ProtectedRoute = ({ children }: PropType) => {
   useEffect(() => {
     if (user == null) {
       if (isLoading == false && isSuccess == true && data == null) {
-        console.log("Navigating to register page from protected route")
+        // console.log("Navigating to register page from protected route")
         navigate('/auth/register')
       } else if (isLoading == false && isSuccess == true && data != null) {
         dispatch(actions.slice1.setUser(data))

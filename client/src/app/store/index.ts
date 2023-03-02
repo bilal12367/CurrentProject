@@ -33,8 +33,8 @@ export interface Message {
     from: String,
     toChat: String,
     message: String,
-    files: string[],
-    replyFor: string,
+    files: String[],
+    replyFor: String,
 }
 
 export interface State2 {
@@ -77,6 +77,7 @@ export interface ErrorType {
     message: String | null
 }
 
+
 export interface State {
     user: User | null,
     selectedPage: pageType,
@@ -87,6 +88,9 @@ export interface State {
     userChatList: ChatItem[],
     errors: {
         login: ErrorType
+    },
+    endpointStatus: {
+        getChat: 'loading' | 'idle' | 'success'
     }
 }
 const initialState: State = {
@@ -99,6 +103,9 @@ const initialState: State = {
     userChatList: [],
     errors: {
         login: { error: null, type: null, message: null }
+    },
+    endpointStatus: {
+        getChat: 'idle'
     }
 }
 
@@ -120,27 +127,20 @@ const slice = createSlice({
         setSelectedChat: (state, action: PayloadAction<ChatItem>) => {
             state.selectedChat = action.payload
         },
+        setSelectedChatDataNull:(state) => {
+            console.log("Selected Chat is set null")
+            state.selectedChat = null
+            state.selectedChatData = null
+        },
         addChatListItem: (state, action: PayloadAction<ChatItem>) => {
             state.userChatList.push(action.payload)
         },
         pushChatMessage: (state, action: PayloadAction<Message>) => {
-            console.log('Push Chat Message action.payload', action.payload)
             const messageItem: Message = action.payload;
-            // let index = 0;
-            // for(let chatItem of state.userChatList){
-            //     let temp = chatItem;
-            //     if(messageItem.toChat == chatItem._id){
-            //         state.userChatList[index].lastMessage = messageItem;
-            //         console.log('state.selectedChatData?.chat_id', state.selectedChatData?.chat_id)
-            //         console.log('messageItem.toChat', messageItem.toChat)
-            //         if(state.selectedChatData?.chat_id != messageItem.toChat){
-            //             state.userChatList[index].urMessages.push(messageItem._id.toString());
-            //         }
-            //     }
-            //     index++;
-            // }
-            if (!state.selectedChatData?.messages.includes(messageItem)) {
-                state.selectedChatData?.messages.push(action.payload)
+            if (state.selectedChatData?.chat_id === messageItem.toChat) {
+                if (!state.selectedChatData?.messages.includes(messageItem)) {
+                    state.selectedChatData?.messages.push(action.payload)
+                }
             }
         },
         messageUpdate: (state, action: PayloadAction<Message>) => {
@@ -149,11 +149,13 @@ const slice = createSlice({
             for (let chatItem of state.userChatList) {
                 if (messageItem.toChat == chatItem._id) {
                     state.userChatList[index].lastMessage = messageItem;
-                    console.log('state.selectedChatData?.chat_id', state.selectedChatData?.chat_id)
-                    console.log('messageItem.toChat', messageItem.toChat)
                     if (state.selectedChatData?.chat_id != messageItem.toChat) {
                         state.userChatList[index].urMessages.push(messageItem._id.toString());
                     }
+                    const item = state.userChatList.splice(index,1)
+                    const tempArr = state.userChatList;
+                    Array.prototype.push.apply(item,tempArr)
+                    state.userChatList = item
                 }
                 index++;
             }
@@ -163,6 +165,7 @@ const slice = createSlice({
             const chatItem1: ChatItem = action.payload;
             for (let chatItem of state.userChatList) {
                 if (chatItem._id == chatItem1._id) {
+                    console.log("Unread Messages cleared")
                     state.userChatList[index].urMessages = []
                 }
                 index++;
@@ -188,7 +191,7 @@ const slice = createSlice({
                 if (errorObj) {
                     switch (errorObj.type) {
                         case "UserNotRegistered":
-                            state.errors.login= errorObj;
+                            state.errors.login = errorObj;
                             break;
                         case "IncorrectPassword":
                             state.errors.login = errorObj;
@@ -209,8 +212,13 @@ const slice = createSlice({
                 state.userChatList = action.payload.resp;
             })
             .addMatcher(pokemonApi.endpoints.getChat.matchFulfilled, (state, action: PayloadAction<Chat>) => {
-                console.log("Get Chat Called: ", action.payload)
+                // console.log("Get Chat Called: ", action.payload)
+                console.log("SelectedChatData Updated")
                 state.selectedChatData = action.payload;
+            }).addMatcher(pokemonApi.endpoints.getChat.matchPending, (state,action: any)=> {
+                state.endpointStatus.getChat = 'loading'
+            }).addMatcher(pokemonApi.endpoints.getChat.matchFulfilled, (state,action: any)=> {
+                state.endpointStatus.getChat = 'success'
             })
         // builder.addCase(getName.pending, (state) => {
         //     state.status.getName = 'loading'

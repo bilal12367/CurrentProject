@@ -48,7 +48,7 @@ export const LoginUser = async (req, res, next) => {
 
 }
 
-export const GetUser = async (req, res) => {
+export const GetUser = async (req, res,next) => {
     try {
         if (Object.prototype.hasOwnProperty.call(req.signedCookies, 's_user')) {
             const user = req.signedCookies.s_user;

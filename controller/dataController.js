@@ -6,27 +6,67 @@ import { conn } from '../server.js'
 import UserChatList from "../models/UserChatList.js"
 import Message from "../models/Message.js"
 import UserStatus from "../models/UserStatus.js"
+import logBox from "log-box"
+import { logger } from "../logger/logger.js"
+import fs from 'fs'
+import * as url from 'url';
+import { deleteObjectS3 } from "../aws/awsS3.js"
+import File from "../models/File.js"
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
 export const testData = async (req, res) => {
     res.json({ data: 'testdata' })
 }
 
+export const deleteFileById = async (req, res) => {
+    logger.debug("ENDPOINT: /deleteFileById")
+    logger.debug("Request body: ", req.body)
+    var fileId = req.body.fileId;
+    try {
+        const resp = await deleteObjectS3(fileId)
+        await File.deleteOne({file_id: fileId})
+        // fs.unlinkSync('./uploads/' + fileId, (err) => {
+        //     res.status(500).json({ message: "Can't delete file." })
+        // })
+        res.json({ message: "Deleted " + fileId, resp })
+    } catch (error) {
+        logger.error(error)
+    }
+}
+
 export const sendMessage = async (req, res) => {
+    // console.log("Send Message Called")
     const userId = req.signedCookies.s_user._id;
     const { chatId, message, files } = req.body;
-    const messageDoc = await Message.create({ from: userId, toChat: chatId, message, files: [] })
-    const chat = await Chat.findOne({ _id: chatId })
+    logger.info("ENDPOINT: /sendMessage ")
+    logger.info("Request Body: ", req.body)
+    logger.info('chatId', chatId)
+    logger.info('message', message)
+    logger.info('Files: ', files)
+    // res.json({body: req.body})
+    // var messageDoc = await Message.create({ from: userId, toChat: chatId, message, files: files })
+    // var chat = await Chat.findOne({ _id: chatId })
     const session = await conn.startSession();
     try {
         await session.withTransaction(async () => {
+            var messageDoc = await Message.create({ from: userId, toChat: chatId, message, files: files })
+            console.log("Message Doc Created: ", messageDoc)
+            res.json({ message: messageDoc })
+            var chat = await Chat.findOne({ _id: chatId })
             chat.messages.push(messageDoc._id);
             await chat.save();
             // 1.) Check Whether user is viewing the chat
             // 2.) If user currently viewing chat then update the last message of that user's chatlist.
             // 3.) If user not viewing chat then update the unread messages add message id and update the last message.
-
+            console.log("Chat Participants: ", chat.participants)
+            console.log("----------------------------------------- loop")
             for (var user of chat.participants) {
-                const userChatList = await UserChatList.findOne({ user_id: user })
+                console.log("User: ", user)
+                const userChatList = await UserChatList.findOne({ user_id: user, chat: chatId })
                 const userStatus = await UserStatus.findOne({ user_id: user })
+                console.log('userChatList:', userChatList)
+                console.log('userStatus:', userStatus)
                 if (userStatus) {
                     const user1 = await User.findOne({ _id: user })
                     console.log("-------------------------------------")
@@ -41,11 +81,11 @@ export const sendMessage = async (req, res) => {
                             userChatList.lastMessage = messageDoc._id;
                         }
                     } else {
-                        console.log("UnReadUpdated else for ", user1.name)
+                        console.log("UnReadUpdated for ", user1.name)
                         userChatList.unReadMessages.push(messageDoc._id);
                         userChatList.lastMessage = messageDoc._id;
                     }
-                    console.log("-----------------------------------------")
+                    // // console.log("-----------------------------------------")
                     await userChatList.save();
                 } else {
                     await UserStatus.create({ user_id: user, online: false })
@@ -60,7 +100,7 @@ export const sendMessage = async (req, res) => {
         await session.abortTransaction();
     }
 
-    res.json({ message: messageDoc })
+    // res.json({ message: messageDoc })
 }
 
 export const getUsers = async (req, res) => {
@@ -123,8 +163,9 @@ export const getChat = async (req, res) => {
 
 export const getUserChatList = async (req, res) => {
     const userId = req.signedCookies.s_user._id
-    const userChatList = await UserChatList.find({ user_id: userId }).populate([{ path: 'chat', populate: [{ path: 'participants' }, { path: 'admin' }] }, { path: 'lastMessage' }])
+    const userChatList = await UserChatList.find({ user_id: userId }).sort([['updatedAt', -1]]).populate([{ path: 'chat', populate: [{ path: 'participants' }, { path: 'admin' }] }, { path: 'lastMessage' }])
     // const userChatList = await UserChatList.find({ user_id: userId }).populate({ path: 'chat', populate: [{ path: 'participants' }, { path: 'admin' }] })
+    logger.debug("UserChatList: ", userChatList)
     var resp = [];
     for (let userChatItem of userChatList) {
         var teamName = userChatItem.chat.team_name;
@@ -135,9 +176,9 @@ export const getUserChatList = async (req, res) => {
                 }
             }
         }
-        // console.log('userChatItem', userChatItem)
+        // // console.log('userChatItem', userChatItem)
         // userChatItem.unReadMessages = urMessages;
-        // console.log('userChatItem', userChatItem)
+        // // console.log('userChatItem', userChatItem)
         var resItem = {
             _id: userChatItem.chat._id,
             chat_id: userChatItem.chat.chat_id,
@@ -146,7 +187,8 @@ export const getUserChatList = async (req, res) => {
             urMessages: userChatItem.unReadMessages,
             participants: userChatItem.chat.participants,
             lastMessage: userChatItem.lastMessage,
-            admin: userChatItem.chat.admin
+            admin: userChatItem.chat.admin,
+            updatedAt: userChatItem.updatedAt
         }
         resp.push(resItem)
     }
@@ -208,13 +250,13 @@ export const addTeam = async (req, res) => {
                 messages: chat[0].messages
             }
 
-            console.log('respChat from TeamAdded: ', respChat)
+            // console.log('respChat from TeamAdded: ', respChat)
 
             res.status(200).json({ chat: respChat })
         })
         await session.endSession();
     } catch (error) {
-        console.log('error from add team', error)
+        // console.log('error from add team', error)
         await session.abortTransaction();
         res.status(401).json({ error });
     }
@@ -254,7 +296,7 @@ export const addDuoChat = async (req, res) => {
             const chat1 = await Chat.populate(chat, { path: 'participants' })
 
             let participants = []
-            for(let participant of chat1[0].participants){
+            for (let participant of chat1[0].participants) {
                 participant.password = undefined;
                 participants.push(participant)
             }
@@ -270,7 +312,7 @@ export const addDuoChat = async (req, res) => {
                 messages: chat[0].messages
             }
 
-            console.log('respChat of AddedDuo: ', respChat)
+            // console.log('respChat of AddedDuo: ', respChat)
 
             res.status(200).json({ chat: respChat })
         })

@@ -32,7 +32,7 @@ const LoginPage = () => {
   useEffect(() => {
     if (response.isSuccess == true && response.data.user != null) {
       dispatch(actions.slice1.setUser(response.data.user))
-      console.log("Navigating to dashboard from Login Page")
+      // console.log("Navigating to dashboard from Login Page")
       navigate('/dashboard')
     } else if (response.isSuccess == true && response.data.user == null) {
       const error = response.data.error;
@@ -93,7 +93,7 @@ const LoginPage = () => {
             <Button
               variant="text"
               onClick={() => {
-                console.log("Navigating to register from login")
+                // console.log("Navigating to register from login")
                 navigate('/auth/register')
               }}
             >

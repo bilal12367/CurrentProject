@@ -49,14 +49,17 @@ const TeamsPage = () => {
     setAnchorEl(null);
   };
 
-  useEffect(()=>{
-    if(selectedChatData == null){
-      socket.emit("leave_room", {user: user?._id, roomId:  selectedChat?._id})
+  useEffect(() => {
+    if(chatId == undefined && selectedChatData != null){
+      dispatch(actions.slice1.setSelectedChatDataNull())
     }
-    return()=>{
+    // if (selectedChatData == null) {
+    //   socket.emit("leave_room", { user: user?._id, roomId: selectedChat?._id })
+    // }
+    return () => {
 
     }
-  },[selectedChatData,selectedChat])
+  }, [selectedChatData, selectedChat])
 
   return (
     <main>
@@ -88,7 +91,7 @@ const TeamsPage = () => {
 
         <Grid xs={3} item borderLeft='1px solid #F4F4F4' borderRight='1px solid #FFFFFF' bgcolor='snow'>
           <Paper elevation={0} sx={{ position: 'relative', zIndex: 3, height: '100%' }} >
-            <Grid container padding={3} direction='column'>
+            <Grid container padding={3} flexDirection='column' height='100%'>
               <Grid container justifyContent='space-between' direction='row'>
                 <Typography variant='h4'>
                   Chats
@@ -132,13 +135,15 @@ const TeamsPage = () => {
             </InputAdornment>
           )
           }}/> */}
-              <Grid>
-                <Tabs variant='fullWidth' value={tabState} onChange={(event: React.SyntheticEvent, newValue: number) => { setTabState(newValue); if (pageState == 0) { setPageState(1); } else { setPageState(0) } }} aria-label="basic tabs example">
-                  <Tab label="Chats" />
-                  <Tab label="Search Users" />
-                </Tabs>
+              <Grid container display='flex' justifyContent='start' flexDirection='column' flexGrow={1}>
+                <Grid container display='block'>
+                  <Tabs variant='fullWidth' sx={{ width: '100%' }} value={tabState} onChange={(event: React.SyntheticEvent, newValue: number) => { setTabState(newValue); if (pageState == 0) { setPageState(1); } else { setPageState(0) } }} aria-label="basic tabs example">
+                    <Tab label="Chats" />
+                    <Tab label="Search Users" />
+                  </Tabs>
+                </Grid>
                 <SwipeableViews style={{ width: '100%' }} onChangeIndex={() => { if (pageState == 0) { setPageState(1); } else { setPageState(0) } }} index={pageState} animateTransitions={true}>
-                  <div style={{ padding: '5px' }}>
+                  <div style={{ padding: '5px', display: 'flex' }}>
                     <UserChatList />
                   </div>
                   <div style={{ padding: '5px' }}>
@@ -156,7 +161,7 @@ const TeamsPage = () => {
                     {isLoading == true && <CircularProgress />}
                     {isLoading == false && isSuccess == true &&
                       // Search User List
-                      <Typography textOverflow='ellipsis' variant='body2'>{usersList?.map((item: User) => {
+                      <Grid textOverflow='ellipsis'>{usersList?.map((item: User) => {
                         if (item._id != user?._id) {
                           return <Paper elevation={2} sx={{ marginTop: '14px' }} key={item._id as any}
                             onClick={() => {
@@ -183,7 +188,7 @@ const TeamsPage = () => {
                                 if (res.length == 0) {
                                   addDuoChat({ userId: item._id }).unwrap().then((res) => {
                                     // Emit Socket event for duo chat added.
-                                    console.log("Res from add duo chat: ", res)
+                                    // console.log("Res from add duo chat: ", res)
                                     socket.emit("duoAdded", res.chat)
                                   })
                                 }
@@ -200,7 +205,7 @@ const TeamsPage = () => {
                           </Paper>
                         }
 
-                      })}</Typography>
+                      })}</Grid>
                     }
                   </div>
                 </SwipeableViews>
@@ -275,7 +280,7 @@ const TeamsPage = () => {
             </Grid>
           </Paper>
         </Grid>
-        <Grid display='flex' position='relative' zIndex={2} height='100vh' flexDirection='column' xs={9} item bgcolor='blue'>
+        <Grid display='flex' position='relative' zIndex={2} height='100vh' flexDirection='column' xs={9} item>
           <Outlet />
           {/* {selectedUser != null && <React.Fragment>
           <Grid item>

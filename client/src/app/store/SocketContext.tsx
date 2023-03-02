@@ -19,9 +19,9 @@ const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   var socket = io('http://localhost:5000')
   // const navigate = useNavigate();
   const setSocket = (userId: string, user: any) => {
-    console.log('SetSocket1:', user)
+    // console.log('SetSocket1:', user)
 
-    console.log("User set")
+    // console.log("User set")
     socket.emit("user", user)
 
   }

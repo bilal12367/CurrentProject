@@ -2,6 +2,7 @@ import { IncorrectPassword, UserNotFound, UserNotRegistered } from "./Errors.js"
 
 export const ErrorHandlerMiddleWare = (error, req, res, next) => {
     console.log("-----------------------ERROR-------------------------")
+    console.log(error)
     switch (error.name) {
         case UserNotRegistered.name:
             console.log("User Not Registered")

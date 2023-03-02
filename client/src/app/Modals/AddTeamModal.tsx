@@ -51,6 +51,7 @@ const UserSelectionComponent = ({ handleOpenModal, handleCloseModal }: PropType)
         if (checked.length >= 2 && teamName != '') {
             addNewTeam({ teamName: teamName, participants: [...checked, user?._id], admin: user?._id }).unwrap().then((res) => {
                 socket.emit("teamAdded", res.chat)
+                handleCloseModal();
             })
             setErrorState({ error: false, message: '' })
         } else {

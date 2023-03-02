@@ -13,7 +13,7 @@ const CheckUserRoute = ({children}: PropType) => {
     const dispatch = useAppDispatch();
     useEffect(()=>{
         if(user!=null){
-          console.log("Navigating to dashboard from checkuserroute")
+          // console.log("Navigating to dashboard from checkuserroute")
             navigate('/dashboard')
         } else{
             

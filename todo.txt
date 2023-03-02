@@ -1,0 +1,4 @@
+Seperate the send message component
+Make selectfile and File component
+Use npm package for dropzone
+Make progress upload component

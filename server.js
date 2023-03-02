@@ -11,34 +11,73 @@ import cookieParser from "cookie-parser"
 import router from './Router/MainRouter.js';
 import authRouter from './Router/AuthRouter.js'
 import AuthMiddleware from './middleware/AuthMiddleware.js';
+import AWS from 'aws-sdk'
 import redis from 'redis'
 import { ErrorHandlerMiddleWare } from './middleware/ErrorHandlerMiddleware.js';
+import { logger } from './logger/logger.js';
+import { randomUUID, randomBytes } from 'crypto';
+import { uploadToS3 } from './aws/awsS3.js';
+import File from './models/File.js';
 
 const upload = multer({})
-
-dotenv.config();
+// var upload = multer({ dest: '/uploads' })
+dotenv.config({path: './env/.env'});
 
 // const client = redis.createClient({ legacyMode: true, url: 'redis://192.168.0.4:6379' })
-const client = redis.createClient({ legacyMode: true, url: 'redis://'+process.env.SERVER_URL+':6379' })
+// const client = redis.createClient({ legacyMode: true, url: 'redis://' + process.env.REDIS_URL + ':' + process.env.REDIS_PORT })
 
-await client.connect();
+// await client.connect();
 
 const app = Express();
 
+app.use(cors({
+    origin: 'http://localhost:3000', 
+    // origin: 'http://localhost:3000', 
+    // allowedHeaders: ['Content-Type', 'multipart/form-data', 'authorization', 'x-metadata', 'x-to'],
+    // exposedHeaders: ['Content-Type', 'multipart/form-data', 'content-disposition', 'x-metadata'], 
+    // preflightContinue: true, 
+    credentials: true
+}))
 app.use(Express.json())
-
+app.use(Express.urlencoded({
+    extended: true,
+    })
+   );
 // app.use(helmet())
 app.use(cookieParser(process.env.SECRET_KEY));
 
-app.use(cors({ origin: 'http://localhost:3000', preflightContinue: true, credentials: true }))
 
 app.use('/api/v1', router);
 
 app.use('/api/v1', authRouter);
 
 
-app.use('/fileUpload', upload.array('files', 5), (req, res) => {
-    res.send("Files Uploaded");
+app.use('/fileUpload', upload.single('file'),async (req, res) => {
+    logger.debug("ENDPOINT: /fileUpload")
+
+    // logger.debug("Request: ",req)
+    logger.debug("Request body: ", req.body)
+    logger.debug("Request file: ", req.file)
+    logger.debug("Request file: ", req.files)
+    try {
+        if (req.file != undefined) {
+            var fileSize = req.file.size / Math.pow(10, 6)
+    
+            if (fileSize <= 15) {
+                var fileId = randomBytes(16).toString('hex')
+                req.file.fileId = fileId
+                await uploadToS3(req.file)
+                const file = await File.create({file_id: fileId,original_name: req.file.originalname, mime_type: req.file.mimetype, size: req.file.size})
+                res.status(200).json({ fileId: req.file.fileId, file })
+            } else {
+                res.status(500).json({ error: "File exceeds size limit of 10MB." })
+            }
+        }    
+    } catch (error) {
+        console.log("File Upload error")
+        console.log(error)
+    }
+    
 })
 
 app.use(ErrorHandlerMiddleWare);
@@ -52,14 +91,14 @@ const server = http.createServer(app);
 const socket = new Server(server, {
     cors: {
         origin: "*",
-        methods: ["GET", "POST"],
+        methods: ["GET", "POST","PUT","DELETE"],
         transports: ['websocket', 'polling'],
         credentials: true,
     },
     allowEIO3: true
 })
 
-SocketController(socket, client);
+SocketController(socket);
 
 const connectDB = async () => {
     await mongoose.connect(process.env.MONGO_URI, (err) => {
@@ -74,6 +113,10 @@ const connectDB = async () => {
 export const conn = mongoose.connection;
 server.listen(process.env.PORT | 5000, async () => {
     console.log('Server started listening at port ' + process.env.PORT + ' ...')
-
+    console.log('---------------------------------------------------------------------')
+    console.log('---------------------------------------------------------------------')
+    console.log('---------------------------------------------------------------------')
+    console.log('---------------------------------------------------------------------')
+    console.log('---------------------------------------------------------------------')
     await connectDB();
 })

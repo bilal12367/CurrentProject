@@ -85,7 +85,7 @@ const Dashboard: React.FC = () => {
     }
     setValue(newValue);
     if (path != '') {
-      console.log("Navigating to dashboard+path from dashboard and path is: " + path)
+      // console.log("Navigating to dashboard+path from dashboard and path is: " + path)
       if (chatId != undefined && path == 'teams') {
         navigate('/dashboard/' + path + '/' + chatId)
       } else {

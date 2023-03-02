@@ -63,7 +63,7 @@ const RegisterPage = () => {
 
   useEffect(() => {
     if (user != null) {
-      console.log("Navigating to dashboard from register page")
+      // console.log("Navigating to dashboard from register page")
       navigate('/dashboard')
     }
   }, [user])

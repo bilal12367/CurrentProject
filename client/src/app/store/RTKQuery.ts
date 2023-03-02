@@ -34,7 +34,7 @@ export const pokemonApi = createApi({
     // Get Request
     getAllProducts: builder.query({
       query: (data) => {
-        console.log('data', data);
+        // console.log('data', data);
         return `users`
       }
     }),
@@ -92,10 +92,18 @@ export const pokemonApi = createApi({
         body: payload,
         headers
       })
+    }),
+    requestDeleteFile: builder.mutation({
+      query: (payload) => ({
+        url: 'deleteFileById',
+        method: 'POST',
+        body: payload,
+        headers
+      })
     })
   }),
 
 })
 
 // export const {  useRegisterUserMutation, useGetUserQuery, useLoginUserMutation } = pokemonApi
-export const {useAddDuoChatMutation ,useSendMessageMutation, useGetChatQuery ,useGetUserChatListQuery, useAddTeamMutation, useGetAllUsersQuery, useGetAllProductsQuery, useAddNewPostMutation, useRegisterUserMutation, useGetUserQuery, useLoginUserMutation } = pokemonApi
+export const {useRequestDeleteFileMutation, useAddDuoChatMutation ,useSendMessageMutation, useGetChatQuery ,useGetUserChatListQuery, useAddTeamMutation, useGetAllUsersQuery, useGetAllProductsQuery, useAddNewPostMutation, useRegisterUserMutation, useGetUserQuery, useLoginUserMutation } = pokemonApi
