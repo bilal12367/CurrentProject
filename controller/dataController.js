@@ -322,3 +322,36 @@ export const addDuoChat = async (req, res) => {
         await session.abortTransaction();
     }
 }
+
+
+export const GetUserById = async (req,res,next) => {
+    logger.info("ENDPOINT: /getUserById")
+    logger.info("Request Body: ", req.body)
+    const userId = req.body.userId
+    try {
+        if (Object.prototype.hasOwnProperty.call(req.signedCookies, 's_user') && userId) {
+            const resp = await User.findOne({_id: userId})
+            if(resp == null){
+                throw new UserNotFound("User Not Found.")
+            } else {
+                res.json(resp)
+            }
+        } else {
+            res.json(null)
+        }
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const getFileById = async (req,res,next) => {
+    logger.info("ENDPOINT: /getFileById")
+    logger.info("Request Body: ", req.body)
+    const fileId = req.body.fileId
+    try {
+        const resp = await File.findOne({file_id: fileId})
+        res.status(200).json(resp)
+    } catch (error) {
+        next(error)
+    }
+}

@@ -1,6 +1,6 @@
 
 import express  from "express";
-import { addDuoChat, addTeam, deleteFileById, getChat, getUserChatList, getUsers, sendMessage, testData } from "../controller/dataController.js";
+import { addDuoChat, addTeam, deleteFileById, getChat, getFileById, GetUserById, getUserChatList, getUsers, sendMessage, testData } from "../controller/dataController.js";
 import AuthMiddleware from "../middleware/AuthMiddleware.js";
 
 const router = express.Router();
@@ -12,4 +12,6 @@ router.route('/getChat/:chatId').get(AuthMiddleware, getChat)
 router.route('/sendMessage').post(AuthMiddleware, sendMessage)
 router.route('/addDuoChat').post(AuthMiddleware, addDuoChat)
 router.route('/deleteFileById').post(AuthMiddleware, deleteFileById)
+router.route('/getUserById').post(AuthMiddleware, GetUserById)
+router.route('/getFileById').post(AuthMiddleware, getFileById)
 export default router;

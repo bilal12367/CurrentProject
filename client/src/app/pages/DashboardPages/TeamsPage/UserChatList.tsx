@@ -29,7 +29,11 @@ const UserChatList = () => {
     const socket = getSocket();
     const dispatch = useAppDispatch();
     useEffect(() => {
-        if (getChatListObj.isLoading == false && selectedChat == null && selectedChatData == null) {
+        if (getChatListObj.isLoading == false &&  userChatList == null) {
+            console.log("Refetching get chat")
+            console.log("selectedChat: ",selectedChat)
+            console.log("selectedChatData: ",selectedChatData)
+            console.log("Userchatlist: ",userChatList)
             getChatListObj.refetch()
         }
         socket.on("chatUpdate", (chatItem: ChatItem) => {
@@ -47,7 +51,9 @@ const UserChatList = () => {
         socket.on("message_update", (data: any) => {
             console.log("Message Update: ", data.message)
             console.log("Selected Chat Data: ", selectedChatData)
+
             dispatch(actions.slice1.messageUpdate(data.message))
+            dispatch(actions.slice1.pushChatMessage(data.message))
         })
         return () => {
             socket.off("chatUpdate")
@@ -59,7 +65,6 @@ const UserChatList = () => {
         }
     }, [selectedChat])
     useEffect(() => {
-        console.log("UserChatList: ",userChatList)
         if (userChatList.length != 0) {
             // console.log("---------------------------------------")
             // console.log('Here is chatList', chatList)
@@ -77,7 +82,7 @@ const UserChatList = () => {
         // console.log('Chat List array: ', userChatList)
     }
     return (
-        <Grid container height='100%'>
+        <Grid height='100%' width='100%'>
             <FormControl sx={{ width: '100%', backgroundColor: theme.palette.grey[200], borderTopRightRadius: '4px', borderTopLeftRadius: '4px', borderRadius: '4px', marginTop: '14px' }} variant="standard">
                 <Input
                     sx={{ padding: '10px' }}

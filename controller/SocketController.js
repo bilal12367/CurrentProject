@@ -2,7 +2,15 @@ import { io } from "socket.io-client";
 import User from "../models/User.js";
 import UserStatus from "../models/UserStatus.js";
 import { logger } from "../logger/logger.js";
+import path from 'path'
+import fs from 'fs'
+import { uploadToS3 } from "../aws/awsS3.js";
+import * as url from 'url';
+import { LocalFileData,constructFileFromLocalFileData } from "get-file-object-from-local-path";
 // Use Redis https://www.youtube.com/watch?v=k0_DK4bzHiU
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
 const SocketController = async (io) => {
     io.on("connection", (socket) => {
         var userId, socketId;
@@ -107,6 +115,20 @@ const SocketController = async (io) => {
             //     await UserStatus.create({ user_id: data.user, online: true, viewing_chat_id: data.roomId })
             // }
             // io.to(data).emit('update',{data: 'data from room'})
+        })
+
+        socket.on('upload_s3',async(data)=> {
+            console.log("Data from upload s3: ",data)
+            // const file = JSON.parse(fs.readFileSync(path.join(__dirname,'..','uploads',data.fileId),{encoding: 'utf-8'}))
+            
+            const buffer = fs.readFileSync(__dirname+'/../uploads/'+data.fileId)
+            const file = {
+                fileId: data.fileId,
+                buffer: buffer
+            }
+            await uploadToS3(file,socket)
+            fs.unlinkSync(__dirname+'/../uploads/'+data.fileId)
+            // await uploadToS3(data.fileId,socket)
         })
 
         socket.on("leave_room", async (data) => {

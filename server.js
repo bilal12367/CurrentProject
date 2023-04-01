@@ -16,10 +16,23 @@ import redis from 'redis'
 import { ErrorHandlerMiddleWare } from './middleware/ErrorHandlerMiddleware.js';
 import { logger } from './logger/logger.js';
 import { randomUUID, randomBytes } from 'crypto';
-import { uploadToS3 } from './aws/awsS3.js';
+import { downloadFromS3, uploadToS3 } from './aws/awsS3.js';
 import File from './models/File.js';
+import fs from 'fs'
 
-const upload = multer({})
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, './uploads/')
+    },
+    filename: function (req, file, cb) {
+        var fileId = randomBytes(16).toString('hex')
+        cb(null,  fileId);
+  
+    }
+});
+
+const upload = multer({storage: storage})
+
 // var upload = multer({ dest: '/uploads' })
 dotenv.config({path: './env/.env'});
 
@@ -52,7 +65,7 @@ app.use('/api/v1', router);
 app.use('/api/v1', authRouter);
 
 
-app.use('/fileUpload', upload.single('file'),async (req, res) => {
+app.post('/fileUpload', upload.single('file'),async (req, res) => {
     logger.debug("ENDPOINT: /fileUpload")
 
     // logger.debug("Request: ",req)
@@ -66,9 +79,10 @@ app.use('/fileUpload', upload.single('file'),async (req, res) => {
             if (fileSize <= 15) {
                 var fileId = randomBytes(16).toString('hex')
                 req.file.fileId = fileId
-                await uploadToS3(req.file)
-                const file = await File.create({file_id: fileId,original_name: req.file.originalname, mime_type: req.file.mimetype, size: req.file.size})
-                res.status(200).json({ fileId: req.file.fileId, file })
+                // await uploadToS3(req.file)
+                // fs.unlinkSync('./uploads/'+req.file.filename)
+                const file = await File.create({file_id: req.file.filename,original_name: req.file.originalname, mime_type: req.file.mimetype, size: req.file.size})
+                res.status(200).json({ fileId: req.file.filename, file })
             } else {
                 res.status(500).json({ error: "File exceeds size limit of 10MB." })
             }
@@ -79,7 +93,12 @@ app.use('/fileUpload', upload.single('file'),async (req, res) => {
     }
     
 })
-
+app.post('/fileDownload', authRouter ,async(req,res)=> {
+    console.log("FileDownloadAPI")
+    console.log('req.body', req.body)
+    const data = await downloadFromS3(req.body.fileId)
+    res.json({data})
+})
 app.use(ErrorHandlerMiddleWare);
 
 app.use('*', (req, res) => {

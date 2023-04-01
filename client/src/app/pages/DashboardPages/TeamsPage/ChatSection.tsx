@@ -4,7 +4,7 @@ import { deepPurple, grey } from '@mui/material/colors'
 import Grid from '@mui/material/Grid'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
-import React, {ChangeEvent, Key, useEffect, useRef, useState } from 'react'
+import React, { ChangeEvent, Key, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { actions, useAppDispatch, useAppSelector } from '../../../store'
 import { useGetChatQuery, useSendMessageMutation } from '../../../store/RTKQuery'
@@ -16,6 +16,7 @@ import { useTheme } from '@mui/system'
 import { useSocketContext } from '../../../store/SocketContext'
 import MessageItem from '../../../components/MessageItem'
 import MessageSender from '../../../components/MessageSender'
+import MoreVert from '@mui/icons-material/MoreVert'
 
 const ChatSection = () => {
     const { getSocket } = useSocketContext();
@@ -23,13 +24,14 @@ const ChatSection = () => {
     const { selectedChat, selectedChatData, user } = useAppSelector((state) => state.slice)
     const getChatStatus = useAppSelector((state) => state.slice.endpointStatus.getChat)
     let messageEnd: any;
+    var temp: any;
     const fileRef = useRef<HTMLInputElement | null>(null);
     const theme = useTheme();
     const dispatch = useAppDispatch();
     const [sendMessageReq, sendMessageResp] = useSendMessageMutation();
     const [message, setMessage] = useState('')
     const getChatQuery = useGetChatQuery(selectedChat?.chat_id)
-
+    const [formatter, setFormatter] = useState([])
     // if (selectedChatData) {
     //     // console.log("SelectedChatData: ", selectedChatData)
     //     // console.log("SelectedChatDataMessages: ", selectedChatData.messages)
@@ -50,7 +52,7 @@ const ChatSection = () => {
             socket.on("message_update", (data: any) => {
                 // messageEnd.scrollIntoView({ behavior: "smooth" });
                 // console.log('message update data: ', data)
-                if (!selectedChatData?.messages.includes(data.message)) {
+                if (!selectedChatData?.messages.includes(data)) {
                     dispatch(actions.slice1.pushChatMessage(data.message))
                 }
             })
@@ -77,7 +79,7 @@ const ChatSection = () => {
     }
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if(e.target.files){
+        if (e.target.files) {
             // console.log(e.target.files)
             // setFiles(e.target.files)
         }
@@ -97,8 +99,8 @@ const ChatSection = () => {
             <Grid flexDirection='column' height='100%' display='flex' position='relative'>
                 <Grid item flexDirection='column'>
                     <Paper sx={{ position: 'relative', zIndex: 2 }}>
-                        <Grid container bgcolor='InfoBackground' direction='row' padding={2}>
-                            <Grid container direction='row' justifyContent='flex-start'>
+                        <Grid container bgcolor='InfoBackground' width="100%" direction='row' padding={2}>
+                            <Grid container direction='row' width="100%" justifyContent='flex-start'>
                                 {/* {getChatQuery.isLoading == true && <CircularProgress />} */}
                                 {getChatStatus == 'loading' && <CircularProgress />}
                                 {/* {getChatQuery.isLoading == false && getChatQuery.isSuccess == true && */}
@@ -114,7 +116,11 @@ const ChatSection = () => {
                                         </Grid>
                                     </React.Fragment>
                                 }
-
+                                <Grid>
+                                    <IconButton>
+                                        <MoreVert />
+                                    </IconButton>
+                                </Grid>
                             </Grid>
                         </Grid>
                     </Paper>
@@ -137,17 +143,52 @@ const ChatSection = () => {
                     <Grid flexDirection='column' ref={(el) => { messageEnd = el; }} position='relative' zIndex={0} className='sc1' sx={{ height: '100%', overflowY: 'scroll' }} item bgcolor={grey[200]}>
                         <React.Fragment>
                             {Object.values(selectedChatData?.messages).map((item, index) => {
+                                var showUser = true;
+                                var showTime = true;
+                                const currentDate = new Date(item.updatedAt as string)
+                                var current = '';
+                                var prev = '';
+                                current = currentDate.getDate() + '/' + currentDate.getMonth() + '/' + currentDate.getFullYear()
+                                if (temp) {
+                                    if (temp.from == item.from) {
+                                        showUser = false;
+                                    }
+                                    const prevDate = new Date(temp.updatedAt)
+                                    prev = prevDate.getDate() + '/' + prevDate.getMonth() + '/' + prevDate.getFullYear()
+
+                                    if (prev != current) {
+                                        showTime = true;
+                                        console.log("Showtime is true")
+                                    } else {
+                                        showTime = false;
+                                    }
+                                    // console.log("Previous Date: ",prevDate.getDate()+ '/' + prevDate.getMonth()+ '/' + prevDate.getFullYear())
+                                    // console.log("Current Date: ",currentDate.getDate())
+                                }
+                                temp = item;
                                 if (index == selectedChatData?.messages.length - 1) {
-                                    return <MessageItem key={item._id as Key} messageItem={item} />
+                                    return <>
+                                        {showTime && 
+                                            <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                                                <Paper style={{padding:'8px',marginTop:'8px'}}>{current}</Paper>
+                                            </div>}
+                                        <MessageItem key={item._id as Key} messageItem={item} showUser={showUser} />
+                                    </>
                                 } else {
-                                    return <MessageItem key={item._id as Key} messageItem={item} />
+                                    return <>
+                                        {showTime && 
+                                            <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+                                                <Paper style={{padding:'8px',marginTop:'8px'}}>{current}</Paper>
+                                            </div>}
+                                            <MessageItem key={item._id as Key} messageItem={item} showUser={showUser} />
+                                    </>
                                 }
                             })}
                         </React.Fragment>
                     </Grid>
                 }
-                
-                <MessageSender/>
+
+                <MessageSender />
                 {/* <Paper elevation={3}>
                     <form onSubmit={sendMessage}>
                         <Grid display='flex' flexDirection='row' alignItems='center' paddingY={1.5} paddingX={1} position='relative' zIndex={2} bgcolor='white' >

@@ -79,7 +79,7 @@ const MessageSender = () => {
                 }
                 sendMessageReq({ chatId: selectedChat?._id, message, files: tempFiles })
                 // socket.to(selectedChat?.chat_id).emit({ chatId: selectedChat?._id, message, files: [] })
-                // socket.emit("send_message",{chatId: selectedChat?.chat_id, message,files: []})
+                socket.emit("send_message",{chatId: selectedChat?.chat_id, message,files: []})
                 setMessage('')
                 setFiles([])
             }

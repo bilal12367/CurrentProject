@@ -1,4 +1,4 @@
-Seperate the send message component
-Make selectfile and File component
 Use npm package for dropzone
-Make progress upload component
+Upload and display Profile pic
+Show more details on hover User avatar
+Show files in chat

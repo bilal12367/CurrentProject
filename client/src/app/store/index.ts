@@ -35,6 +35,7 @@ export interface Message {
     message: String,
     files: String[],
     replyFor: String,
+    updatedAt: String
 }
 
 export interface State2 {
@@ -136,6 +137,7 @@ const slice = createSlice({
             state.userChatList.push(action.payload)
         },
         pushChatMessage: (state, action: PayloadAction<Message>) => {
+            // This updates the chat messages after the message update.
             const messageItem: Message = action.payload;
             if (state.selectedChatData?.chat_id === messageItem.toChat) {
                 if (!state.selectedChatData?.messages.includes(messageItem)) {
@@ -144,6 +146,7 @@ const slice = createSlice({
             }
         },
         messageUpdate: (state, action: PayloadAction<Message>) => {
+            // This updates the chatlist after message update
             let index = 0;
             const messageItem: Message = action.payload;
             for (let chatItem of state.userChatList) {

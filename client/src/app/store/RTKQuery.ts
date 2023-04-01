@@ -85,6 +85,14 @@ export const pokemonApi = createApi({
         return '/getUserChatList'
       } 
     }),
+    getUserById: builder.mutation({
+      query: (payload) => ({
+        url: 'getUserById',
+        method: 'POST',
+        body: payload,
+        headers
+      })
+    }),
     loginUser: builder.mutation({
       query: (payload) => ({
         url: 'login',
@@ -100,10 +108,18 @@ export const pokemonApi = createApi({
         body: payload,
         headers
       })
+    }),
+    getFileById: builder.mutation({
+      query: (payload) => ({
+        url: 'getFileById',
+        body: payload,
+        method: 'POST',
+        headers
+      })
     })
   }),
 
 })
 
 // export const {  useRegisterUserMutation, useGetUserQuery, useLoginUserMutation } = pokemonApi
-export const {useRequestDeleteFileMutation, useAddDuoChatMutation ,useSendMessageMutation, useGetChatQuery ,useGetUserChatListQuery, useAddTeamMutation, useGetAllUsersQuery, useGetAllProductsQuery, useAddNewPostMutation, useRegisterUserMutation, useGetUserQuery, useLoginUserMutation } = pokemonApi
+export const {useGetFileByIdMutation, useGetUserByIdMutation,useRequestDeleteFileMutation, useAddDuoChatMutation ,useSendMessageMutation, useGetChatQuery ,useGetUserChatListQuery, useAddTeamMutation, useGetAllUsersQuery, useGetAllProductsQuery, useAddNewPostMutation, useRegisterUserMutation, useGetUserQuery, useLoginUserMutation } = pokemonApi

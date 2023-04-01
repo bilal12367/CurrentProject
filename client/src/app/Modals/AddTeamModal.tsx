@@ -14,7 +14,7 @@ import { useAddTeamMutation } from '../store/RTKQuery';
 import ErrorBox from '../wrappers/ErrorBox';
 import SuccessBox from '../wrappers/SuccessBox';
 import { useSocketContext } from '../store/SocketContext';
-import SwipeableViews from 'react-swipeable-views';
+
 import Groups from '@mui/icons-material/Groups';
 
 interface PropType {
@@ -90,7 +90,16 @@ const UserSelectionComponent = ({ handleOpenModal, handleCloseModal }: PropType)
     return (
         <React.Fragment>
             {/* <SwipeableViews style={{ width: '100%', padding: '0px' }} onChangeIndex={handleIndexChange} index={pageState} animateTransitions={true} enableMouseEvents={true}> */}
-            <SwipeableViews style={{ width: '100%', padding: '0px' }} onChangeIndex={handleIndexChange} index={pageState} animateTransitions={true}>
+            
+        </React.Fragment>
+    );
+}
+
+export default UserSelectionComponent
+
+
+
+{/* <SwipeableViews style={{ width: '100%', padding: '0px' }} onChangeIndex={handleIndexChange} index={pageState} animateTransitions={true}>
                 <Grid container width='100%' direction='column'>
                     <Grid container paddingX={2}>
                         <FormControl sx={{ width: '100%', backgroundColor: theme.palette.grey[200], borderTopRightRadius: '4px', borderTopLeftRadius: '4px', borderRadius: '4px', marginTop: '14px' }} variant="standard">
@@ -139,7 +148,7 @@ const UserSelectionComponent = ({ handleOpenModal, handleCloseModal }: PropType)
                             } 
                         })}
                         {responseAddNewTeam.isError && <ErrorBox text={'Something went wrong.' + (responseAddNewTeam as any).error.data.message} />}
-                        {/* {responseAddNewTeam.isSuccess && <SuccessBox text={'Team Added Successfully.'} />} */}
+                        
                         {errorState.error == true && <ErrorBox text={errorState.message} />}
                     </List>
                     <Grid container direction='row' justifyContent='space-between' marginTop={1}>
@@ -190,9 +199,4 @@ const UserSelectionComponent = ({ handleOpenModal, handleCloseModal }: PropType)
                         <Button variant='contained' disabled={(checked.length >= 2 && teamName!= '') ? false: true} onClick={handleAddTeam}>{'Add Team'}</Button>
                     </Grid>
                 </Grid>
-            </SwipeableViews>
-        </React.Fragment>
-    );
-}
-
-export default UserSelectionComponent
+            </SwipeableViews> */}
