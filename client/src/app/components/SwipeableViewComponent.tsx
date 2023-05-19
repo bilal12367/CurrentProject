@@ -23,7 +23,7 @@ const SwipeableViewComponent = ({ children, position }: SwipeableViewComponentPr
     if (children) {
         return (
             <div className="d-flex" style={{height:'100%', width:'100%', display: 'flex', overflow: 'hidden', position: 'relative' }}>
-                <div className="" style={{ display: '-webkit-box', right: positionState + '00%', position: 'absolute', transition: 'all 0.4s ease',width:'100%' }}>
+                <div className="" style={{ display: '-webkit-box', right: positionState + '00%', position: 'absolute', transition: 'all 0.4s ease',width:'100%',height:'100%' }}>
                     {Children.toArray(children).length >1 && Object.values(children).map((item) => {
                         const key = String(Math.random() * 1000)
                         return <div key={key} style={{ width: '100%', height: '100%' }}>

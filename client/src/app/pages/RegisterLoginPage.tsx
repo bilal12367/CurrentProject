@@ -13,6 +13,7 @@ import React, {useEffect} from 'react'
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
 import rgil from '../../assets/RegisterBack1.png'
 import LoginPage from './LoginPage'
+import { BackgroundColors } from '../colors/colors'
 
 const RegisterLoginPage = () => {
     useEffect(()=> {
@@ -24,14 +25,14 @@ const RegisterLoginPage = () => {
         <Grid
           container
           direction="row"
-          bgcolor="aliceblue"
+          bgcolor={BackgroundColors.aliceBlue}
           sx={{ height: '100vh' }}
         >
           <Grid
             item
             container
             xl={8}
-            bgcolor="#F2F2F2"
+            bgcolor={BackgroundColors.grey}
             direction="row"
             justifyContent="flex-end"
             alignItems="flex-start"

@@ -9,6 +9,14 @@ export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: server_url + '/api/v1', credentials: 'include' }),
   endpoints: (builder) => ({
+    getPeerAndSocketId: builder.mutation({
+      query: (payload) => ({
+        url: 'getPeerAndSocketId',
+        method: 'POST',
+        body: payload,
+        headers
+      })
+    }),
     addDuoChat: builder.mutation({
       query: (payload) => ({
         url:'addDuoChat',
@@ -16,8 +24,7 @@ export const pokemonApi = createApi({
         body: payload,
         headers
       })
-    })
-    ,
+    }),
     sendMessage: builder.mutation({
       query: (payload) => ({
         url: 'sendMessage',
@@ -122,4 +129,4 @@ export const pokemonApi = createApi({
 })
 
 // export const {  useRegisterUserMutation, useGetUserQuery, useLoginUserMutation } = pokemonApi
-export const {useGetFileByIdMutation, useGetUserByIdMutation,useRequestDeleteFileMutation, useAddDuoChatMutation ,useSendMessageMutation, useGetChatQuery ,useGetUserChatListQuery, useAddTeamMutation, useGetAllUsersQuery, useGetAllProductsQuery, useAddNewPostMutation, useRegisterUserMutation, useGetUserQuery, useLoginUserMutation } = pokemonApi
+export const { useGetPeerAndSocketIdMutation ,useGetFileByIdMutation, useGetUserByIdMutation,useRequestDeleteFileMutation, useAddDuoChatMutation ,useSendMessageMutation, useGetChatQuery ,useGetUserChatListQuery, useAddTeamMutation, useGetAllUsersQuery, useGetAllProductsQuery, useAddNewPostMutation, useRegisterUserMutation, useGetUserQuery, useLoginUserMutation } = pokemonApi

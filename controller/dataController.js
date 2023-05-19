@@ -19,17 +19,28 @@ export const testData = async (req, res) => {
     res.json({ data: 'testdata' })
 }
 
+export const getPeerAndSocketId = async (req, res) => {
+    logger.info("ENDPOINT: /getPeerSocketId")
+    logger.info("Req body: ", req.body)
+    const userStatus = await UserStatus.findOne({user_id: req.body.user})
+    if(userStatus.online) {
+        res.json({status: 'online', peerId: userStatus.peer_id,socketId: userStatus.socket_id })
+    }else {
+        res.json({status: 'offline'})
+    }
+}
+
 export const deleteFileById = async (req, res) => {
     logger.debug("ENDPOINT: /deleteFileById")
     logger.debug("Request body: ", req.body)
     var fileId = req.body.fileId;
     try {
-        const resp = await deleteObjectS3(fileId)
-        await File.deleteOne({file_id: fileId})
-        // fs.unlinkSync('./uploads/' + fileId, (err) => {
-        //     res.status(500).json({ message: "Can't delete file." })
-        // })
-        res.json({ message: "Deleted " + fileId, resp })
+        // const resp = await deleteObjectS3(fileId)
+        await File.deleteOne({ file_id: fileId })
+        fs.unlinkSync('./uploads/' + fileId, (err) => {
+            res.status(500).json({ message: "Can't delete file." })
+        })
+        res.json({ message: "Deleted " + fileId })
     } catch (error) {
         logger.error(error)
     }
@@ -51,7 +62,6 @@ export const sendMessage = async (req, res) => {
     try {
         await session.withTransaction(async () => {
             var messageDoc = await Message.create({ from: userId, toChat: chatId, message, files: files })
-            console.log("Message Doc Created: ", messageDoc)
             res.json({ message: messageDoc })
             var chat = await Chat.findOne({ _id: chatId })
             chat.messages.push(messageDoc._id);
@@ -59,18 +69,11 @@ export const sendMessage = async (req, res) => {
             // 1.) Check Whether user is viewing the chat
             // 2.) If user currently viewing chat then update the last message of that user's chatlist.
             // 3.) If user not viewing chat then update the unread messages add message id and update the last message.
-            console.log("Chat Participants: ", chat.participants)
-            console.log("----------------------------------------- loop")
             for (var user of chat.participants) {
-                console.log("User: ", user)
                 const userChatList = await UserChatList.findOne({ user_id: user, chat: chatId })
                 const userStatus = await UserStatus.findOne({ user_id: user })
-                console.log('userChatList:', userChatList)
-                console.log('userStatus:', userStatus)
                 if (userStatus) {
                     const user1 = await User.findOne({ _id: user })
-                    console.log("-------------------------------------")
-                    console.log('userStatus', userStatus)
                     if (userStatus.online == true && userStatus.viewing_chat_id != undefined) {
                         if (userStatus.viewing_chat_id?.toString() == chat._id) {
                             console.log("UnRead not updated for: ", user1.name)
@@ -129,8 +132,10 @@ export const getChat = async (req, res) => {
 
     if (userStatus) {
         userStatus.viewing_chat_id = chat._id;
+        logger.debug("Setting Chat ID: ", userStatus.viewing_chat_id)
         userStatus.online = true;
-        userStatus.save();
+        logger.debug("UserStatus: ", userStatus)
+        await userStatus.save();
     } else {
         await UserStatus.create({ user_id: userId, online: true, viewing_chat_id: chat._id })
     }
@@ -323,15 +328,25 @@ export const addDuoChat = async (req, res) => {
     }
 }
 
+export const setPeerId = async (req, res, next) => {
+    logger.info("ENDPOINT: /setPeerId")
+    logger.info("Request Body: ", req.body)
 
-export const GetUserById = async (req,res,next) => {
+    try {
+
+    } catch (error) {
+        logger.error("/setPeerId Error: ", error)
+    }
+}
+
+export const GetUserById = async (req, res, next) => {
     logger.info("ENDPOINT: /getUserById")
     logger.info("Request Body: ", req.body)
     const userId = req.body.userId
     try {
         if (Object.prototype.hasOwnProperty.call(req.signedCookies, 's_user') && userId) {
-            const resp = await User.findOne({_id: userId})
-            if(resp == null){
+            const resp = await User.findOne({ _id: userId })
+            if (resp == null) {
                 throw new UserNotFound("User Not Found.")
             } else {
                 res.json(resp)
@@ -344,12 +359,12 @@ export const GetUserById = async (req,res,next) => {
     }
 }
 
-export const getFileById = async (req,res,next) => {
+export const getFileById = async (req, res, next) => {
     logger.info("ENDPOINT: /getFileById")
     logger.info("Request Body: ", req.body)
     const fileId = req.body.fileId
     try {
-        const resp = await File.findOne({file_id: fileId})
+        const resp = await File.findOne({ file_id: fileId })
         res.status(200).json(resp)
     } catch (error) {
         next(error)

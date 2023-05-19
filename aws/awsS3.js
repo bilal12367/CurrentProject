@@ -12,24 +12,26 @@ export const getAWSS3 = () => {
         region: process.env.AWS_REGION
     }
     const S3 = new AWS.S3(awsConfig)
-    return S3
+    return ''
 }
 
-export const uploadToS3 =async (file,socket)=>{
+export const uploadToS3 =async (file,socket,fileId)=>{
     const S3 = getAWSS3()
+    
     const params = {
         Bucket: process.env.AWS_BUCKET,
-        Key: file.fileId,
+        Key: fileId,
         Body: file.buffer
     }
-    logger.info("File uploading: ",file.fileId)
+    logger.debug(params)
+    logger.info("File uploading: ",fileId)
     const resp = await S3.upload(params).on('httpUploadProgress',(e)=>{
         var percentage = Math.floor((e.loaded/e.total) * 100)
         
         logger.info("Percentage: ",percentage)
-        socket.emit(file.fileId, {percentage})
+        socket.emit(fileId, {percentage})
     }).promise();
-    logger.info("File Uploaded: ",file.fileId)
+    logger.info("File Uploaded: ",fileId)
     return resp;
     
 }
@@ -43,7 +45,6 @@ export const downloadFromS3 = async (fileId)=> {
     }
     try {
         const data = await S3.getObject(params).promise();
-        fs.writeFileSync(__dirname+'/../uploads/'+fileId,data.Body.toString())
         return data;
     } catch (error) {
         console.log("Caught Error Download")

@@ -5,13 +5,13 @@ import InputAdornment from '@mui/material/InputAdornment'
 import React, { useEffect, useState } from 'react'
 import SearchIcon from '@mui/icons-material/Search';
 import { CircularProgress, MenuItem, useTheme } from '@mui/material'
-import { useSocketContext } from '../../../store/SocketContext'
+import { useSocketContext } from '../store/SocketContext'
 import Paper from '@mui/material/Paper'
 import Avatar from '@mui/material/Avatar'
 import { blue, deepPurple } from '@mui/material/colors'
 import Typography from '@mui/material/Typography'
-import { useGetUserChatListQuery } from '../../../store/RTKQuery'
-import { actions, ChatItem, useAppDispatch, useAppSelector } from '../../../store'
+import { useGetUserChatListQuery } from '../store/RTKQuery'
+import { actions, ChatItem, useAppDispatch, useAppSelector } from '../store'
 import { useNavigate } from 'react-router-dom'
 
 
@@ -59,7 +59,8 @@ const UserChatList = () => {
             socket.off("chatUpdate")
             for (let chatItem of userChatList) {
                 // // console.log("Leaving room: ", chatItem._id)
-                socket.emit("leave_room", { user: user?._id, roomId: chatItem._id })
+                console.log("Leave room invoked in userchatlist")
+                socket.emit("leave_room", { user: user?._id, roomId: chatItem._id, updateDbFlag: false })
             }
             socket.off("message_update")
         }

@@ -6,7 +6,7 @@ import path from 'path'
 import fs from 'fs'
 import { uploadToS3 } from "../aws/awsS3.js";
 import * as url from 'url';
-import { LocalFileData,constructFileFromLocalFileData } from "get-file-object-from-local-path";
+import { LocalFileData, constructFileFromLocalFileData } from "get-file-object-from-local-path";
 // Use Redis https://www.youtube.com/watch?v=k0_DK4bzHiU
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
@@ -28,10 +28,10 @@ const SocketController = async (io) => {
                 userStatus.name = user1.name;
                 userStatus.socket_id = socket.id
                 userStatus.viewing_chat_id = undefined;
+                logger.debug("Removing viewing chat id socket on user")
                 await userStatus.save();
-                console.info("---------------------------------------------")
             } else {
-                logger.info('Creating userstatus for: ', user1.name)
+                logger.debug("Removing viewing chat id socket on user")
                 await UserStatus.create({ user_id: userId, socket_id: socket.id, user_name: user1.name, online: true, viewing_chat_id: undefined })
             }
             // client.set(userId, socket.id)
@@ -41,6 +41,15 @@ const SocketController = async (io) => {
         })
         socket.on("closing", (data) => {
             console.info("Closing: ", data)
+        })
+
+        socket.on("set_view_chat", (data) => {
+            logger.info("Socket Event: set_view_chat")
+            logger.info("Data: ", data)
+        })
+        socket.on("remove_view_chat", (data) => {
+            logger.info("Socket Event: remove_view_chat")
+            logger.info("Data: ", data)
         })
 
         socket.on("clear", async (data) => {
@@ -61,11 +70,21 @@ const SocketController = async (io) => {
             io.to(toChat).emit("message_update", data)
         })
 
+        socket.on("call_request", (data) => {
+            logger.info("Call Request Socket: ", data)
+            io.to(data.socketId).emit("call_request", data)
+        })
+
+        socket.on("accept_call", (data) => {
+            logger.info("Call Accept Socket: ",data)
+            io.to(data.callerSocketId).emit("accept_call",data)
+        })
+
         socket.on("teamAdded", async (data) => {
             const users = await UserStatus.find({ user_id: { $in: data.participants } }).select({ socket_id: 1, user_id: 1 });
-            users.map((item)=>{
-                if(item.socket_id !== undefined){
-                    io.to(item.socket_id).emit('chatUpdate',data);
+            users.map((item) => {
+                if (item.socket_id !== undefined) {
+                    io.to(item.socket_id).emit('chatUpdate', data);
                 }
             })
             // data.participants.forEach((item) => {
@@ -83,11 +102,11 @@ const SocketController = async (io) => {
             // })
         })
 
-        socket.on("duoAdded",async (data) => {
+        socket.on("duoAdded", async (data) => {
             const users = await UserStatus.find({ user_id: { $in: data.participants } }).select({ socket_id: 1, user_id: 1 });
-            users.map((item)=>{
-                if(item.socket_id !== undefined){
-                    io.to(item.socket_id).emit('chatUpdate',data);
+            users.map((item) => {
+                if (item.socket_id !== undefined) {
+                    io.to(item.socket_id).emit('chatUpdate', data);
                 }
             })
             // data.participants.forEach((item) => {
@@ -117,30 +136,41 @@ const SocketController = async (io) => {
             // io.to(data).emit('update',{data: 'data from room'})
         })
 
-        socket.on('upload_s3',async(data)=> {
-            console.log("Data from upload s3: ",data)
+        socket.on('upload_s3', async (data) => {
+            console.log("Data from upload s3: ", data)
             // const file = JSON.parse(fs.readFileSync(path.join(__dirname,'..','uploads',data.fileId),{encoding: 'utf-8'}))
-            
-            const buffer = fs.readFileSync(__dirname+'/../uploads/'+data.fileId)
+
+            const buffer = fs.readFileSync(__dirname + '/../uploads/' + data.fileId)
             const file = {
                 fileId: data.fileId,
                 buffer: buffer
             }
-            await uploadToS3(file,socket)
-            fs.unlinkSync(__dirname+'/../uploads/'+data.fileId)
+            // await uploadToS3(file,socket)
+            // fs.unlinkSync(__dirname+'/../uploads/'+data.fileId)
             // await uploadToS3(data.fileId,socket)
         })
 
         socket.on("leave_room", async (data) => {
             socket.leave(data.roomId)
             const userStatus = await UserStatus.findOne({ user_id: data.user });
-            if (userStatus) {
+            if (userStatus && data.updateDbFlag == undefined) {
+                logger.debug(data)
                 userStatus.viewing_chat_id = undefined;
+                logger.debug("Removing viewing chat id socket on leave_room")
                 await userStatus.save();
-            } 
+            }
             // else {
             //     await UserStatus.create({ user_id: data.user, online: true, viewing_chat_id: undefined })
             // }
+        })
+
+        socket.on("setPeerId", async (data) => {
+            logger.info("Socket Event: //setPeerId")
+            logger.info("Data: ", data)
+            const userStatus = await UserStatus.findOne({ user_id: data.user })
+            userStatus.peer_id = data.peerId
+            await userStatus.save();
+            logger.debug("User Peer Id Updated: ", userStatus)
         })
 
         socket.on("disconnect1", async (data) => {
@@ -156,6 +186,7 @@ const SocketController = async (io) => {
             if (userStatus) {
                 userStatus.online = false;
                 userStatus.viewing_chat_id = undefined;
+                logger.debug("Removing viewing chat id socket on disconnect")
                 userStatus.socket_id = undefined;
                 await userStatus.save();
             }

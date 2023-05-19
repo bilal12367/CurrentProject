@@ -9,6 +9,9 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import FileOpenIcon from '@mui/icons-material/FileOpen';
 import DownloadIcon from '@mui/icons-material/Download';
 import ShareIcon from '@mui/icons-material/Share';
+import axios, { AxiosHeaders } from "axios";
+import { server_url } from "../constants";
+import FileDownload from 'js-file-download'
 // import FileViewer from 'react-file-viewer'
 interface MessageFileItemProps {
     fileId: string
@@ -21,10 +24,6 @@ export const MessageFileItem = ({ fileId }: MessageFileItemProps): JSX.Element =
     useEffect(() => {
         getFileById({ fileId })
     }, [])
-    if (getFileResp.isSuccess) {
-        // console.log("File Response:")
-        // console.log(getFileResp.data)
-    }
 
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -34,9 +33,24 @@ export const MessageFileItem = ({ fileId }: MessageFileItemProps): JSX.Element =
     const handleClose = () => {
         setAnchorEl(null);
     };
-    const handleDownload = () => {
+    const handleDownload = async () => {
         setAnchorEl(null);
+        const resp = await axios.post(server_url + '/fileDownload', { fileId: fileId },{responseType:'blob'})
         
+        console.log("FileName: ",getFileResp.data.original_name)
+        
+        FileDownload(resp.data,getFileResp.data.original_name)
+        // link.href = resp.data.buffer;
+        // console.log(resp.data)
+        // var binary = []
+        // binary.push(resp.data)
+        // const url = window.URL.createObjectURL(resp.data);
+
+        // console.log("Data: ",resp.data)
+        // document.body.appendChild(link);
+        // link.href = url
+        // link.click();
+        // document.body.removeChild(link);
     }
     const toggleModal = () => {
         if (openModal) {
@@ -80,7 +94,7 @@ export const MessageFileItem = ({ fileId }: MessageFileItemProps): JSX.Element =
                             </IconButton>
                         </Grid>
                         <Grid>
-                            
+
                         </Grid>
                     </Grid>
                 </Paper>

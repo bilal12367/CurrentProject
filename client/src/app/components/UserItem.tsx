@@ -41,7 +41,7 @@ export const UserItem = ({ userId }: UserItemProps): JSX.Element => {
         return {
             sx: {
                 bgcolor: stringToColor(name),
-                fontSize: '14px',
+                fontSize: '18px',
                 fontWeight: 'bold',
                 width: '34px',
                 height: '34px'

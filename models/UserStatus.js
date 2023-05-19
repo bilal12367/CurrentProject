@@ -5,6 +5,7 @@ const UserStatusSchema = new mongoose.Schema({
   user_name: {type: String}, // For debugging remove it afterwards
   socket_id: {type: String},
   online: {type: Boolean},
+  peer_id: {type: String,unique: true},
   viewing_chat_id: {type: mongoose.Types.ObjectId, ref: 'chat'}
 }, { timestamps: true });
 

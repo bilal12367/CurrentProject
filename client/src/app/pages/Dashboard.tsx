@@ -18,13 +18,10 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-import './DashboardPages/DashboardPages.css'
+import './DashboardPages.css'
 import GroupsIcon from '@mui/icons-material/Groups'
 import SearchIcon from '@mui/icons-material/Search';
 import ViewStreamIcon from '@mui/icons-material/ViewStream';
-import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemText from '@mui/material/ListItemText'
-import MenuItem from '../components/MenuItem'
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import PersonIcon from '@mui/icons-material/Person';
 import { useSocketContext } from '../store/SocketContext';

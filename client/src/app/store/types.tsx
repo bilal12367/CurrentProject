@@ -6,3 +6,5 @@ export interface FileItemType {
     file: File,
     fileId: string | null
 }
+
+export type CallState = 'idle'|'call_incoming'|'call_accepted'

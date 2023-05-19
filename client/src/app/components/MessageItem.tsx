@@ -48,15 +48,15 @@ const MessageItem = ({ messageItem,showUser }: PropType) => {
             <Grid container direction='row' marginY={2} ref={ref} paddingLeft={2} justifyContent={setContent.alignment}>
                 {setContent.showFromUser == true && showUser == true && <UserItem userId={messageItem.from}/>}           
                 {showUser == false && <Box height='34px' width='34px'/>}     
-                <Paper elevation={2} sx={{position:'relative',marginLeft: '8px',borderRadius: '7px' ,backgroundColor: setContent.bgColor, color: setContent.textColor,paddingY:'6px' }}>
+                <Paper elevation={2} sx={{position:'relative',minWidth:'130px',marginLeft: '8px',borderRadius: '7px' ,backgroundColor: setContent.bgColor, color: setContent.textColor,paddingY:'6px' }}>
                     <Grid display='flex' flexDirection='column' paddingX={1} minWidth='100px' maxWidth='440px' textOverflow='ellipsis' >
                         {messageItem.message}
                         {messageItem.files && Object.values(messageItem.files).map((fileItem)=> {
                             return <MessageFileItem fileId={fileItem as string} />
                         })}
                     </Grid>
-                    <Grid width='100%' display='flex' justifyContent='end' paddingRight='8px'>
-                        <Typography variant='subtitle2' color={colors.grey[500]}>{timeSince(new Date(messageItem.updatedAt as string)) + ' ago'}</Typography>
+                    <Grid width='100%' display='flex'  justifyContent='end' paddingRight='8px'>
+                        <Typography variant='subtitle2' fontSize='10px' color={colors.grey[500]}>{timeSince(new Date(messageItem.updatedAt as string)) + ' ago'}</Typography>
                     </Grid>
                 </Paper>
             </Grid>

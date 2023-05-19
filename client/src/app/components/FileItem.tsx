@@ -39,12 +39,12 @@ const FileItem = ({ fileItem, index, removeFile, setFileId }: FileItemProps): JS
     useEffect(()=>{
         if(fileId && isListenerSet==false){
             console.log("Emitting event.")
-            socket.emit("upload_s3",{fileId: fileId})
-            socket.on(fileId, (data: any)=> {
-                var percentage = data.percentage - 50
-                setProgress(50 + percentage)
-                console.log("Progress: ",50 + percentage)
-            })
+            // socket.emit("upload_s3",{fileId: fileId})
+            // socket.on(fileId, (data: any)=> {
+            //     var percentage = data.percentage - 50
+            //     setProgress(50 + percentage)
+            //     console.log("Progress: ",50 + percentage)
+            // })
             isListenerSet = true;
         }
     },[fileId])
@@ -71,7 +71,7 @@ const FileItem = ({ fileItem, index, removeFile, setFileId }: FileItemProps): JS
                 }
             }
         }).then((res) => {
-            // setProgress(100)
+            setProgress(100)
             setUploadStatus('uploaded')
             setFileIdState(res.data.fileId) // Debugging purposes.
             setFileId(index,res.data.fileId)
